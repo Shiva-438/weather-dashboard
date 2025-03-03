@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #121212;
+            color: #ffffff;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background-color: #1e1e1e;
+        }
+
+        .navbar h1 {
+            margin: 0;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 16px;
+            margin-right: 10px;
+            width: 200px;
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+
+        .weather-container {
+            margin: 20px;
+            padding: 20px;
+            background-color: #333;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <h1>Weather Dashboard</h1>
+        <input type="text" id="cityInput" placeholder="Enter city (e.g., Hyderabad, Delhi)...">
+        <button onclick="getWeather()">Search</button>
+    </nav>
+
+    <section class="weather-container">
+        <div class="weather-info">
+            <h2 id="cityName">City Name</h2>
+            <p id="temperature">Temperature: --°C</p>
+            <p id="weatherCondition">Condition: --</p>
+            <p id="humidity">Humidity: --%</p>
+            <p id="windSpeed">Wind Speed: -- km/h</p>
+        </div>
+        <p id="errorMessage" class="error-message"></p>
+    </section>
+
+    <script>
+        const apiKey = "1896c993a50f8d2115fe4d32a160bd91";
+        const defaultCities = ["Hyderabad", "Delhi", "Mumbai", "Bangalore", "Chennai", "Kolkata", "Pune", "Ahmedabad"];
+
+        async function getWeather(city) {
+            let cityName = city || document.getElementById("cityInput").value.trim();
+            if (!cityName) {
+                alert("Please enter a city name.");
+                return;
+            }
+
+            let apiUrl = https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${apiKey}&units=metric;
+
+            try {
+                console.log(Fetching weather for: ${cityName});
+                let response = await fetch(apiUrl);
+                let data = await response.json();
+
+                if (data.cod !== 200) {
+                    document.getElementById("errorMessage").innerText = Error: ${data.message};
+                    return;
+                }
+
+                document.getElementById("cityName").innerText = data.name;
+                document.getElementById("temperature").innerText = Temperature: ${data.main.temp}°C;
+                document.getElementById("weatherCondition").innerText = Condition: ${data.weather[0].description};
+                document.getElementById("humidity").innerText = Humidity: ${data.main.humidity}%;
+                document.getElementById("windSpeed").innerText = Wind Speed: ${data.wind.speed} km/h;
+                document.getElementById("errorMessage").innerText = "";
+
+            } catch (error) {
+                console.error("Error fetching weather data:", error);
+                document.getElementById("errorMessage").innerText = "Failed to fetch weather data.";
+            }
+        }
+
+        // Load multiple default cities when the page opens
+        window.onload = function () {
+            getWeather("Hyderabad"); // First default city shown
+        };
+    </script>
+
+</body>
+</html>
