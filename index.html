@@ -5,115 +5,183 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weather Dashboard</title>
     <style>
+        /* Basic Styling */
         body {
             font-family: Arial, sans-serif;
+            background-color: lightblue;
+            color: #333;
             margin: 0;
             padding: 0;
-            background-color: #121212;
-            color: #ffffff;
-        }
-
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            background-color: #1e1e1e;
-        }
-
-        .navbar h1 {
-            margin: 0;
-        }
-
-        input {
-            padding: 10px;
-            font-size: 16px;
-            margin-right: 10px;
-            width: 200px;
-        }
-
-        button {
-            padding: 10px 15px;
-            background-color: #007bff;
-            border: none;
-            color: white;
-            cursor: pointer;
-        }
-
-        .weather-container {
-            margin: 20px;
-            padding: 20px;
-            background-color: #333;
-            border-radius: 8px;
             text-align: center;
         }
 
-        .error-message {
-            color: red;
+        /* Header */
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px 0;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        /* Search Box */
+        section {
+            margin-top: 20px;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            width: 200px;
+            margin-right: 10px;
             font-size: 16px;
+        }
+
+        button {
+            padding: 10px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Weather Info */
+        #weather-info {
+            margin-top: 30px;
+        }
+
+        #weather-info img {
+            width: 50px;
+            height: 50px;
+        }
+
+        /* Forecast Info */
+        #forecast-info {
+            margin-top: 40px;
+        }
+
+        .forecast-item {
+            display: inline-block;
+            margin: 0 10px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
 
-    <nav class="navbar">
+    <!-- Header -->
+    <header>
         <h1>Weather Dashboard</h1>
-        <input type="text" id="cityInput" placeholder="Enter city (e.g., Hyderabad, Delhi)...">
-        <button onclick="getWeather()">Search</button>
-    </nav>
+    </header>
 
-    <section class="weather-container">
-        <div class="weather-info">
-            <h2 id="cityName">City Name</h2>
-            <p id="temperature">Temperature: --°C</p>
-            <p id="weatherCondition">Condition: --</p>
-            <p id="humidity">Humidity: --%</p>
-            <p id="windSpeed">Wind Speed: -- km/h</p>
-        </div>
-        <p id="errorMessage" class="error-message"></p>
+    <!-- Search Input -->
+    <section>
+        <input type="text" id="city-input" placeholder="Enter city name">
+        <button id="search-btn">Search</button>
+    </section>
+
+    <!-- Weather Info -->
+    <section id="weather-info">
+        <!-- Weather details will be displayed here -->
+    </section>
+
+    <!-- Forecast Info -->
+    <section id="forecast-info">
+        <!-- 5-day forecast will be displayed here -->
     </section>
 
     <script>
-        const apiKey = "1896c993a50f8d2115fe4d32a160bd91";
-        const defaultCities = ["Hyderabad", "Delhi", "Mumbai", "Bangalore", "Chennai", "Kolkata", "Pune", "Ahmedabad"];
+        const apiKey = 'e80cf0f3bb26fd4d2426672da3be56ae'; // Your API key
 
-        async function getWeather(city) {
-            let cityName = city || document.getElementById("cityInput").value.trim();
-            if (!cityName) {
-                alert("Please enter a city name.");
-                return;
-            }
+        // Function to fetch current weather data
+        function fetchWeatherData(city) {
+            // Updated API URL format using template literals
+            const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
 
-            let apiUrl = https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${apiKey}&units=metric;
+            console.log('API Call URL:', url); // Log the URL to see the exact API call made
 
-            try {
-                console.log(Fetching weather for: ${cityName});
-                let response = await fetch(apiUrl);
-                let data = await response.json();
-
-                if (data.cod !== 200) {
-                    document.getElementById("errorMessage").innerText = Error: ${data.message};
-                    return;
-                }
-
-                document.getElementById("cityName").innerText = data.name;
-                document.getElementById("temperature").innerText = Temperature: ${data.main.temp}°C;
-                document.getElementById("weatherCondition").innerText = Condition: ${data.weather[0].description};
-                document.getElementById("humidity").innerText = Humidity: ${data.main.humidity}%;
-                document.getElementById("windSpeed").innerText = Wind Speed: ${data.wind.speed} km/h;
-                document.getElementById("errorMessage").innerText = "";
-
-            } catch (error) {
-                console.error("Error fetching weather data:", error);
-                document.getElementById("errorMessage").innerText = "Failed to fetch weather data.";
-            }
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('City not found');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Weather Data:', data); // Log the data received from API
+                    displayWeatherData(data);
+                    fetchForecastData(city); // Fetch 5-day forecast data
+                })
+                .catch(error => {
+                    console.error('Error fetching weather data:', error); // Log the error message
+                    document.getElementById('weather-info').innerHTML = `<p>Error: ${error.message}. Please try again!</p>`;
+                });
         }
 
-        // Load multiple default cities when the page opens
-        window.onload = function () {
-            getWeather("Hyderabad"); // First default city shown
-        };
-    </script>
+        // Function to display current weather data
+        function displayWeatherData(data) {
+            const weatherIcon = `http://openweathermap.org/img/wn/${data.weather[0].icon}.png`;
+            document.getElementById('weather-info').innerHTML = `
+                <h2>${data.name}, ${data.sys.country}</h2>
+                <p><img src="${weatherIcon}" alt="Weather icon"> ${data.weather[0].description}</p>
+                <p>Temperature: ${data.main.temp}°C</p>
+                <p>Humidity: ${data.main.humidity}%</p>
+                <p>Wind Speed: ${data.wind.speed} m/s</p>
+            `;
+        }
 
+        // Function to fetch weather forecast data (for 5 days)
+        function fetchForecastData(city) {
+            // Forecast API call
+            const url = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`;
+
+            console.log('Forecast API Call URL:', url); // Log the URL to see the forecast API call
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Forecast Data:', data); // Log the forecast data
+                    displayForecastData(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching forecast data:', error); // Log any errors
+                    document.getElementById('forecast-info').innerHTML = `<p>Error: ${error.message}. Please try again later!</p>`;
+                });
+        }
+
+        // Function to display weather forecast data
+        function displayForecastData(data) {
+            const forecastContainer = document.getElementById('forecast-info');
+            forecastContainer.innerHTML = ''; // Clear previous forecast data
+
+            data.list.slice(0, 5).forEach(item => {
+                const weatherIcon = `http://openweathermap.org/img/wn/${item.weather[0].icon}.png`;
+                forecastContainer.innerHTML += `
+                    <div class="forecast-item">
+                        <h3>${new Date(item.dt * 1000).toLocaleDateString()}</h3>
+                        <img src="${weatherIcon}" alt="Weather icon">
+                        <p>${item.weather[0].description}</p>
+                        <p>Temp: ${item.main.temp}°C</p>
+                    </div>
+                `;
+            });
+        }
+
+        // Event listener for the search button
+        document.getElementById('search-btn').addEventListener('click', () => {
+            const city = document.getElementById('city-input').value.trim();
+            if (city) {
+                fetchWeatherData(city);
+            } else {
+                alert('Please enter a city!');
+            }
+        });
+    </script>
 </body>
 </html>
